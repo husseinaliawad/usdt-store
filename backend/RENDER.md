@@ -21,7 +21,8 @@ SESSION_DRIVER=database
 CACHE_STORE=database
 QUEUE_CONNECTION=sync
 
-MAIL_MAILER=log
+MAIL_MAILER=resend
+RESEND_API_KEY=re_xxxxxxxxx
 MAIL_FROM_ADDRESS=no-reply@hawlak.net
 MAIL_FROM_NAME="USDT STORE"
 
