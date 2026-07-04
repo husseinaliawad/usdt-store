@@ -20,3 +20,4 @@ Route::post('/control/wallets', [AdminDashboardController::class, 'storeWallet']
 Route::post('/control/wallets/{wallet}', [AdminDashboardController::class, 'updateWallet'])->name('control.wallets.update');
 Route::post('/control/networks', [AdminDashboardController::class, 'storeNetwork'])->name('control.networks.store');
 Route::post('/control/fees/{fee}', [AdminDashboardController::class, 'updateFee'])->name('control.fees.update');
+Route::get('/control/{section}', [AdminDashboardController::class, 'section'])->name('control.section');

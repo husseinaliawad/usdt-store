@@ -85,6 +85,20 @@ class AdminDashboardController extends Controller
 
     public function dashboard(Request $request): View|RedirectResponse
     {
+        return $this->dashboardView($request, 'overview');
+    }
+
+    public function section(Request $request, string $section): View|RedirectResponse
+    {
+        if (! array_key_exists($section, $this->sections())) {
+            abort(404);
+        }
+
+        return $this->dashboardView($request, $section);
+    }
+
+    private function dashboardView(Request $request, string $section): View|RedirectResponse
+    {
         if (! $this->isAdmin()) {
             return redirect()->route('control.login');
         }
@@ -170,6 +184,8 @@ class AdminDashboardController extends Controller
             'networks' => Network::orderBy('name')->get(),
             'fees' => FeeSetting::orderBy('type')->get(),
             'filters' => ['q' => $query, 'status' => $status],
+            'page' => $section,
+            'sections' => $this->sections(),
         ]);
     }
 
@@ -315,5 +331,24 @@ class AdminDashboardController extends Controller
             'payload' => $payload + ['user_agent' => $request->userAgent()],
             'ip' => $request->ip(),
         ]);
+    }
+
+    private function sections(): array
+    {
+        return [
+            'overview' => ['label' => 'الرئيسية', 'icon' => '▦', 'group' => 'المراقبة'],
+            'transfers' => ['label' => 'التحويلات', 'icon' => '↔', 'group' => 'الإدارة'],
+            'users' => ['label' => 'المستخدمون و KYC', 'icon' => '◌', 'group' => 'الإدارة'],
+            'wallets' => ['label' => 'المحافظ', 'icon' => '▤', 'group' => 'الإدارة'],
+            'currencies' => ['label' => 'العملات والرسوم', 'icon' => '$', 'group' => 'الإدارة'],
+            'orders' => ['label' => 'الطلبات', 'icon' => '□', 'group' => 'الإدارة'],
+            'notifications' => ['label' => 'الإشعارات', 'icon' => '◉', 'group' => 'النظام'],
+            'reports' => ['label' => 'التقارير', 'icon' => '↟', 'group' => 'المراقبة'],
+            'audit' => ['label' => 'سجل العمليات', 'icon' => '⌁', 'group' => 'المراقبة'],
+            'roles' => ['label' => 'الصلاحيات', 'icon' => '◇', 'group' => 'النظام'],
+            'security' => ['label' => 'الأمان', 'icon' => '⎋', 'group' => 'النظام'],
+            'settings' => ['label' => 'الإعدادات', 'icon' => '⚙', 'group' => 'النظام'],
+            'support' => ['label' => 'الدعم الفني', 'icon' => '?', 'group' => 'النظام'],
+        ];
     }
 }
