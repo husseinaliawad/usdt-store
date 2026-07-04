@@ -242,7 +242,7 @@
             <a href="#users">المستخدمون <span>03</span></a>
             <a href="#wallets">المحافظ <span>04</span></a>
             <a href="#settings">الإعدادات <span>05</span></a>
-            <form method="post" action="{{ route('control.logout') }}">
+            <form method="post" action="{{ route('control.logout', [], false) }}">
                 @csrf
                 <button class="logout" type="submit">تسجيل الخروج <span>←</span></button>
             </form>
@@ -290,8 +290,8 @@
                             <td>
                                 @if ($tx->status === 'pending')
                                     <div class="actions">
-                                        <form method="post" action="{{ route('control.transactions.approve', $tx) }}">@csrf<button class="btn" type="submit">قبول</button></form>
-                                        <form method="post" action="{{ route('control.transactions.reject', $tx) }}">@csrf<input name="note" placeholder="سبب الرفض" required style="width:130px"><button class="btn danger" type="submit">رفض</button></form>
+                                        <form method="post" action="{{ route('control.transactions.approve', $tx, false) }}">@csrf<button class="btn" type="submit">قبول</button></form>
+                                        <form method="post" action="{{ route('control.transactions.reject', $tx, false) }}">@csrf<input name="note" placeholder="سبب الرفض" required style="width:130px"><button class="btn danger" type="submit">رفض</button></form>
                                     </div>
                                 @else
                                     <span class="badge">تمت المراجعة</span>
@@ -312,7 +312,7 @@
                     <tbody>
                     @foreach ($users as $user)
                         <tr>
-                            <form method="post" action="{{ route('control.users.update', $user) }}">
+                            <form method="post" action="{{ route('control.users.update', $user, false) }}">
                                 @csrf
                                 <td>{{ $user->name }}</td>
                                 <td>{{ $user->email }}</td>
@@ -331,7 +331,7 @@
 
         <section class="panel" id="wallets">
             <div class="panel-head"><div><h2>المحافظ</h2><small>إضافة وتعديل عناوين وأرصدة المستخدمين</small></div></div>
-            <form class="form-grid" method="post" action="{{ route('control.wallets.store') }}">
+            <form class="form-grid" method="post" action="{{ route('control.wallets.store', [], false) }}">
                 @csrf
                 <select name="user_id" required>@foreach ($users as $user)<option value="{{ $user->id }}">{{ $user->email }}</option>@endforeach</select>
                 <select name="network_id" required>@foreach ($networks as $network)<option value="{{ $network->id }}">{{ $network->code }}</option>@endforeach</select>
@@ -345,7 +345,7 @@
                     <tbody>
                     @foreach ($wallets as $wallet)
                         <tr>
-                            <form method="post" action="{{ route('control.wallets.update', $wallet) }}">
+                            <form method="post" action="{{ route('control.wallets.update', $wallet, false) }}">
                                 @csrf
                                 <td>{{ $wallet->user?->email }}</td>
                                 <td><span class="badge">{{ $wallet->network?->code }}</span></td>
@@ -363,7 +363,7 @@
 
         <section class="panel" id="settings">
             <div class="panel-head"><div><h2>الشبكات والعمولات</h2><small>تحكم بالشبكات المدعومة ورسوم العمليات</small></div></div>
-            <form class="form-grid" method="post" action="{{ route('control.networks.store') }}">
+            <form class="form-grid" method="post" action="{{ route('control.networks.store', [], false) }}">
                 @csrf
                 <input name="name" placeholder="اسم الشبكة" required>
                 <input name="code" placeholder="الكود" required>
@@ -377,7 +377,7 @@
                     <tbody>
                     @foreach ($fees as $fee)
                         <tr>
-                            <form method="post" action="{{ route('control.fees.update', $fee) }}">
+                            <form method="post" action="{{ route('control.fees.update', $fee, false) }}">
                                 @csrf
                                 <td>{{ $fee->name }}</td>
                                 <td><span class="badge">{{ $fee->type }}</span></td>

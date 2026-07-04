@@ -108,7 +108,7 @@
             </div>
         </div>
 
-        <form method="post" action="{{ route('control.login.submit') }}">
+        <form method="post" action="{{ route('control.login.submit', [], false) }}">
             @csrf
             <label for="email">البريد الإلكتروني</label>
             <input id="email" name="email" type="email" value="{{ old('email') }}" autocomplete="email" required>
