@@ -12,4 +12,9 @@ class AuditLog extends Model
     {
         return ['payload' => 'array'];
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

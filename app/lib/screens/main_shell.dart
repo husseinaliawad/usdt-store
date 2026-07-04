@@ -21,7 +21,7 @@ class MainShell extends StatelessWidget {
       ),
     );
     /* bottomNavigationBar: NavigationBar(
-        backgroundColor: const Color(0xFF101010),
+        backgroundColor: panel,
         indicatorColor: gold.withValues(alpha: .16),
         selectedIndex: s.tab,
         onDestinationSelected: s.setTab,

@@ -45,7 +45,7 @@ class _SendScreenState extends State<SendScreen> {
         ),
         const SizedBox(height: 24),
         if (message != null) ...[
-          Text(message!, style: const TextStyle(color: Colors.redAccent)),
+          Text(message!, style: const TextStyle(color: danger)),
           const SizedBox(height: 12),
         ],
         GoldButton(
@@ -101,8 +101,8 @@ class ConfirmScreen extends StatelessWidget {
           '$amount USDT',
           style: const TextStyle(
             color: gold2,
-            fontSize: 30,
-            fontWeight: FontWeight.bold,
+            fontSize: 27,
+            fontWeight: FontWeight.w800,
           ),
         ),
         InfoRow('إلى', address.isEmpty ? 'عنوان خارجي' : address),
@@ -327,7 +327,7 @@ class _DepositScreenState extends State<DepositScreen> {
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 14,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                           const SizedBox(height: 10),
@@ -388,7 +388,7 @@ class _DepositScreenState extends State<DepositScreen> {
           ),
           if (message != null) ...[
             const SizedBox(height: 8),
-            Text(message!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.redAccent)),
+            Text(message!, textAlign: TextAlign.center, style: const TextStyle(color: danger)),
           ],
           const SizedBox(height: 12),
           GoldButton(
@@ -502,7 +502,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                         text: '${available.toStringAsFixed(2)} USDT',
                         style: const TextStyle(
                           color: gold2,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                     ],
@@ -545,7 +545,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
           ),
           if (message != null) ...[
             const SizedBox(height: 8),
-            Text(message!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.redAccent)),
+            Text(message!, textAlign: TextAlign.center, style: const TextStyle(color: danger)),
           ],
           const SizedBox(height: 12),
           GoldButton(
@@ -609,8 +609,8 @@ class OperationPageShell extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: gold2,
-                    fontSize: 21,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 19,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
@@ -651,7 +651,7 @@ class OperationSegmentedTabs extends StatelessWidget {
     height: 56,
     padding: const EdgeInsets.all(5),
     decoration: BoxDecoration(
-      color: const Color(0xFF101010),
+      color: panel,
       borderRadius: BorderRadius.circular(15),
       border: Border.all(color: gold.withValues(alpha: .20)),
       boxShadow: [
@@ -721,7 +721,7 @@ class SegmentButton extends StatelessWidget {
         text,
         style: TextStyle(
           color: selected ? Colors.black : muted,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w800,
           fontSize: 16,
         ),
       ),
@@ -741,7 +741,7 @@ class OperationCard extends StatelessWidget {
       gradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Color(0xFF181818), Color(0xFF090909)],
+        colors: [panelSoft, black],
       ),
       borderRadius: BorderRadius.circular(18),
       border: Border.all(color: gold.withValues(alpha: .25)),
@@ -770,7 +770,7 @@ class GoldLabel extends StatelessWidget {
       style: const TextStyle(
         color: gold2,
         fontSize: 14,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w800,
       ),
     ),
   );
@@ -804,9 +804,9 @@ class GoldInputField extends StatelessWidget {
       hintText: hint,
       prefixIcon: prefixIcon == null ? null : Icon(prefixIcon, color: gold2),
       suffixText: suffix,
-      suffixStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      suffixStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
       filled: true,
-      fillColor: const Color(0xFF111111),
+      fillColor: panelSoft,
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide(color: gold.withValues(alpha: .38)),
@@ -839,7 +839,7 @@ class StyledNetworkDropdown extends StatelessWidget {
       height: 58,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF111111),
+        color: panelSoft,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: gold.withValues(alpha: .38)),
       ),
@@ -861,7 +861,7 @@ class StyledNetworkDropdown extends StatelessWidget {
                         child: Text(
                           e == 'TRC20' ? 'TRC20 (Tron)' : e,
                           textAlign: TextAlign.right,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          style: const TextStyle(fontWeight: FontWeight.w800),
                         ),
                       ),
                     ],
@@ -898,7 +898,7 @@ class StyledSelectField extends StatelessWidget {
       height: 58,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF111111),
+        color: panelSoft,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: gold.withValues(alpha: .38)),
       ),
@@ -906,7 +906,7 @@ class StyledSelectField extends StatelessWidget {
         children: [
           Icon(icon, color: gold2),
           const Spacer(),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
           const SizedBox(width: 10),
           trailing,
         ],
@@ -928,13 +928,13 @@ class AmountChip extends StatelessWidget {
       height: 48,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: const Color(0xFF111111),
+        color: panelSoft,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: gold.withValues(alpha: .28)),
       ),
       child: Text(
         text,
-        style: const TextStyle(color: gold2, fontWeight: FontWeight.bold),
+        style: const TextStyle(color: gold2, fontWeight: FontWeight.w800),
       ),
     ),
   );
@@ -961,7 +961,7 @@ class MiniGoldAction extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Text(text, style: const TextStyle(color: gold2, fontWeight: FontWeight.bold)),
+          Text(text, style: const TextStyle(color: gold2, fontWeight: FontWeight.w800)),
           const SizedBox(width: 8),
           Icon(icon, color: gold2, size: 18),
         ],
@@ -981,7 +981,7 @@ class ImportantNotes extends StatelessWidget {
       const Text(
         'ملاحظات مهمة',
         textAlign: TextAlign.right,
-        style: TextStyle(color: gold2, fontWeight: FontWeight.bold),
+        style: TextStyle(color: gold2, fontWeight: FontWeight.w800),
       ),
       const SizedBox(height: 8),
       ...items.map(
@@ -1020,7 +1020,7 @@ class TetherBadge extends StatelessWidget {
     child: const Center(
       child: Text(
         '₮',
-        style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+        style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800),
       ),
     ),
   );
@@ -1098,14 +1098,14 @@ class TxDetailsScreen extends StatelessWidget {
         ),
         Text(
           tx.title,
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 10),
         Text(
           '${tx.amount.toStringAsFixed(2)} USDT',
           style: TextStyle(
-            color: tx.amount >= 0 ? Colors.greenAccent : Colors.white,
-            fontSize: 26,
+            color: tx.amount >= 0 ? success : Colors.white,
+            fontSize: 23,
           ),
         ),
         InfoRow('الشبكة', tx.network),

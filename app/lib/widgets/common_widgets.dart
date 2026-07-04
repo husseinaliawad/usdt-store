@@ -11,7 +11,7 @@ class BrandScaffold extends StatelessWidget {
         gradient: RadialGradient(
           center: Alignment.topRight,
           radius: 1.2,
-          colors: [Color(0xFF2A220E), black],
+          colors: [Color(0xFF241E12), black],
         ),
       ),
       child: child,
@@ -26,21 +26,26 @@ class BrandBlock extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min,
     children: [
-      BrandLogo(
-        width: big ? 190 : 130,
-        height: big ? 190 : 130,
-      ),
-      const SizedBox(height: 12),
+      BrandLogo(width: big ? 132 : 86, height: big ? 132 : 86),
+      const SizedBox(height: 18),
       Text(
         'USDT STORE',
         style: TextStyle(
           color: gold2,
-          fontSize: big ? 30 : 24,
+          fontSize: big ? 28 : 25,
           fontWeight: FontWeight.bold,
           letterSpacing: 0,
         ),
       ),
-      const Text('محفظتك الرقمية الآمنة', style: TextStyle(color: gold)),
+      const SizedBox(height: 7),
+      const Text(
+        'محفظتك الرقمية الآمنة',
+        style: TextStyle(
+          color: gold,
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
     ],
   );
 }
@@ -59,11 +64,11 @@ class BrandLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SvgPicture.asset(
-        'assets/images/logo.svg',
-        width: width,
-        height: height,
-        fit: fit,
-      );
+    'assets/images/logo.svg',
+    width: width,
+    height: height,
+    fit: fit,
+  );
 }
 
 class LuxuryCard extends StatelessWidget {
@@ -72,15 +77,15 @@ class LuxuryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     margin: const EdgeInsets.symmetric(vertical: 8),
-    padding: const EdgeInsets.all(16),
+    padding: const EdgeInsets.all(18),
     decoration: BoxDecoration(
       gradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Color(0xFF181818), Color(0xFF0B0B0B)],
+        colors: [panelSoft, Color(0xFF0B0A09)],
       ),
-      border: Border.all(color: gold, width: .55),
-      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: gold.withValues(alpha: .38), width: .7),
+      borderRadius: BorderRadius.circular(cardRadius),
       boxShadow: [
         BoxShadow(
           color: gold.withValues(alpha: .10),
@@ -110,7 +115,7 @@ class GoldButton extends StatelessWidget {
     child: DecoratedBox(
       decoration: BoxDecoration(
         gradient: const LinearGradient(colors: [gold, gold2]),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: TextButton.icon(
         onPressed: onTap,
@@ -119,7 +124,8 @@ class GoldButton extends StatelessWidget {
           text,
           style: const TextStyle(
             color: Colors.black,
-            fontWeight: FontWeight.bold,
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
           ),
         ),
       ),
@@ -135,11 +141,11 @@ class ActionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) => InkWell(
     onTap: onTap,
-    borderRadius: BorderRadius.circular(14),
+    borderRadius: BorderRadius.circular(16),
     child: Container(
       decoration: BoxDecoration(
         color: panel,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: line),
       ),
       child: Column(
@@ -263,7 +269,7 @@ class SectionTitle extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, height: 1.3),
         ),
         const Spacer(),
         if (action != null)
@@ -290,7 +296,7 @@ class TxTile extends StatelessWidget {
             : gold.withValues(alpha: .15),
         child: Icon(
           tx.amount >= 0 ? Icons.south_west : Icons.north_east,
-          color: tx.amount >= 0 ? Colors.greenAccent : gold,
+          color: tx.amount >= 0 ? success : gold,
         ),
       ),
       title: Text(tx.title),
@@ -301,7 +307,7 @@ class TxTile extends StatelessWidget {
       trailing: Text(
         '${tx.amount > 0 ? '+' : ''}${tx.amount.toStringAsFixed(2)} USDT',
         style: TextStyle(
-          color: tx.amount >= 0 ? Colors.greenAccent : Colors.white,
+          color: tx.amount >= 0 ? success : Colors.white,
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -327,7 +333,7 @@ class PageHeader extends StatelessWidget {
           child: Text(
             title,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800, height: 1.3),
           ),
         ),
         const SizedBox(width: 48),
@@ -439,7 +445,7 @@ class StatCard extends StatelessWidget {
           '${value.toStringAsFixed(2)} USDT',
           style: const TextStyle(
             color: gold2,
-            fontSize: 18,
+            fontSize: 17,
             fontWeight: FontWeight.bold,
           ),
         ),

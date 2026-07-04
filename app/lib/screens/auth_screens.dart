@@ -179,8 +179,8 @@ class _SplashBrandCard extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 148,
-          height: 148,
+          width: 122,
+          height: 122,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
@@ -208,8 +208,8 @@ class _SplashBrandCard extends StatelessWidget {
           textAlign: TextAlign.center,
           style: TextStyle(
             color: gold2,
-            fontSize: 30,
-            height: 1,
+            fontSize: 28,
+            height: 1.05,
             fontWeight: FontWeight.w900,
             letterSpacing: .5,
           ),
@@ -220,7 +220,7 @@ class _SplashBrandCard extends StatelessWidget {
           textAlign: TextAlign.center,
           style: TextStyle(
             color: gold,
-            fontSize: 15,
+            fontSize: 13.5,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -327,87 +327,123 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) => BrandScaffold(
     child: SafeArea(
-      child: Column(
-        children: [
-          const SizedBox(height: 12),
-          const BrandBlock(),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 250,
-            child: PageView.builder(
-              controller: page,
-              itemCount: items.length,
-              onPageChanged: (v) => setState(() => index = v),
-              itemBuilder: (_, i) => LuxuryCard(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(items[i].$2, color: gold, size: 48),
-                    const SizedBox(height: 12),
-                    Text(
-                      items[i].$1,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: pagePadding),
+        child: Column(
+          children: [
+            const SizedBox(height: 26),
+            const BrandBlock(),
+            const SizedBox(height: 30),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 430),
+              child: SizedBox(
+                height: 178,
+                child: PageView.builder(
+                  controller: page,
+                  itemCount: items.length,
+                  onPageChanged: (v) => setState(() => index = v),
+                  itemBuilder: (_, i) => LuxuryCard(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(items[i].$2, color: gold, size: 38),
+                          const SizedBox(height: 14),
+                          Text(
+                            items[i].$1,
+                            style: const TextStyle(
+                              fontSize: 21,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            items[i].$3,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: muted,
+                              fontSize: 13.5,
+                              height: 1.55,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      items[i].$3,
-                      textAlign: TextAlign.center,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: muted, height: 1.35),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 22),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                3,
+                (i) => Container(
+                  width: i == index ? 22 : 8,
+                  height: 8,
+                  margin: const EdgeInsets.symmetric(horizontal: 5),
+                  decoration: BoxDecoration(
+                    color: i == index ? gold : Colors.white24,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 30),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 430),
+              child: GoldButton(
+                text: index == 2 ? 'إنشاء حساب جديد' : 'متابعة',
+                onTap: () {
+                  if (index < 2) {
+                    page.nextPage(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeOut,
+                    );
+                  } else {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    );
+                  }
+                },
+              ),
+            ),
+            const SizedBox(height: 18),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 430),
+              child: SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: BorderSide(color: gold.withValues(alpha: .45)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                  ],
+                  ),
+                  child: const Text(
+                    'تسجيل الدخول',
+                    style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700),
+                  ),
                 ),
               ),
             ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-              3,
-              (i) => Container(
-                width: i == index ? 22 : 8,
-                height: 8,
-                margin: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: i == index ? gold : Colors.white24,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          GoldButton(
-            text: index == 2 ? 'إنشاء حساب جديد' : 'متابعة',
-            onTap: () {
-              if (index < 2) {
-                page.nextPage(
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.easeOut,
-                );
-              } else {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                );
-              }
-            },
-          ),
-          TextButton(
-            onPressed: () => Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const LoginScreen()),
-            ),
-            child: const Text(
-              'تسجيل الدخول',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-          const SizedBox(height: 8),
-        ],
+            const SizedBox(height: 18),
+          ],
+        ),
       ),
     ),
   );
@@ -519,7 +555,7 @@ class _LoginScreenState extends State<LoginScreen>
           child: Center(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
+              padding: const EdgeInsets.symmetric(horizontal: pagePadding, vertical: 22),
               child: FadeTransition(
                 opacity: _fadeAnimation,
                 child: SlideTransition(
@@ -582,7 +618,7 @@ class _LoginCard extends StatelessWidget {
     constraints: const BoxConstraints(maxWidth: 430),
     padding: const EdgeInsets.fromLTRB(22, 30, 22, 24),
     decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(34),
+      borderRadius: BorderRadius.circular(28),
       gradient: LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
@@ -614,14 +650,14 @@ class _LoginCard extends StatelessWidget {
           'مرحباً بك',
           style: TextStyle(
             color: Colors.white,
-            fontSize: 26,
+            fontSize: 24,
             fontWeight: FontWeight.w800,
           ),
         ),
         const SizedBox(height: 5),
         const Text(
           'تسجيل الدخول إلى حسابك',
-          style: TextStyle(color: Colors.white70, fontSize: 14),
+          style: TextStyle(color: muted, fontSize: 13.5),
         ),
         const SizedBox(height: 26),
         _LuxuryTextField(
@@ -690,7 +726,7 @@ class _LoginCard extends StatelessWidget {
           Text(
             loginMessage!,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.redAccent, fontSize: 13),
+            style: const TextStyle(color: danger, fontSize: 13),
           ),
         ],
         const SizedBox(height: 22),
@@ -705,7 +741,7 @@ class _LoginCard extends StatelessWidget {
           children: [
             const Text(
               'ليس لديك حساب؟',
-              style: TextStyle(color: Colors.white70, fontSize: 14),
+              style: TextStyle(color: muted, fontSize: 13.5),
             ),
             GestureDetector(
               onTap: onRegister,
@@ -829,13 +865,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Center(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
+              padding: const EdgeInsets.symmetric(horizontal: pagePadding, vertical: 22),
               child: Container(
                 width: double.infinity,
                 constraints: const BoxConstraints(maxWidth: 430),
                 padding: const EdgeInsets.fromLTRB(22, 30, 22, 24),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(34),
+                  borderRadius: BorderRadius.circular(28),
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
@@ -867,14 +903,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       'إنشاء حساب جديد',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 26,
+                        fontSize: 24,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
                     const SizedBox(height: 5),
                     const Text(
                       'أدخل معلوماتك لإنشاء حسابك',
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                      style: TextStyle(color: muted, fontSize: 13.5),
                     ),
                     const SizedBox(height: 26),
                     _LuxuryTextField(
@@ -952,7 +988,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         registerMessage!,
                         textAlign: TextAlign.center,
                         style: const TextStyle(
-                          color: Colors.redAccent,
+                          color: danger,
                           fontSize: 13,
                         ),
                       ),
@@ -985,8 +1021,8 @@ class _LoginLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    width: 180,
-    height: 180,
+    width: 124,
+    height: 124,
     decoration: BoxDecoration(
       shape: BoxShape.circle,
       boxShadow: [
@@ -1024,7 +1060,7 @@ class _LuxuryTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox(
-    height: 52,
+    height: 50,
     child: TextField(
       controller: controller,
       keyboardType: keyboardType,
@@ -1032,14 +1068,14 @@ class _LuxuryTextField extends StatelessWidget {
       obscureText: obscureText,
       textAlign: TextAlign.right,
       onSubmitted: onSubmitted,
-      style: const TextStyle(color: Colors.white, fontSize: 14),
+      style: const TextStyle(color: Colors.white, fontSize: 13.5),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: Colors.white60, fontSize: 13),
+        hintStyle: const TextStyle(color: mutedSoft, fontSize: 13),
         prefixIcon: Icon(icon, color: gold2, size: 21),
         suffixIcon: suffix,
         filled: true,
-        fillColor: Colors.black.withValues(alpha: .32),
+        fillColor: panelSoft.withValues(alpha: .72),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 14,
           vertical: 14,
@@ -1071,7 +1107,7 @@ class _LoginButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => SizedBox(
     width: double.infinity,
-    height: 54,
+    height: 52,
     child: DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(13),
@@ -1114,7 +1150,7 @@ class _LoginButton extends StatelessWidget {
                 text,
                 style: const TextStyle(
                   color: Colors.black,
-                  fontSize: 16,
+                  fontSize: 15,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -1165,7 +1201,7 @@ class _GoogleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => SizedBox(
     width: double.infinity,
-    height: 52,
+    height: 50,
     child: OutlinedButton(
       onPressed: onTap,
       style: OutlinedButton.styleFrom(
@@ -1180,14 +1216,14 @@ class _GoogleButton extends StatelessWidget {
             'G',
             style: TextStyle(
               color: gold2,
-              fontSize: 22,
+              fontSize: 20,
               fontWeight: FontWeight.w900,
             ),
           ),
           SizedBox(width: 12),
           Text(
             'تسجيل الدخول عبر Google',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700),
           ),
         ],
       ),

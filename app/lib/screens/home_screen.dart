@@ -31,7 +31,7 @@ class HomeScreen extends StatelessWidget {
                   const Spacer(),
                   const Text(
                     'الرئيسية',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(fontWeight: FontWeight.w800),
                   ),
                   const Spacer(),
                   CircleAvatar(
@@ -51,7 +51,7 @@ class HomeScreen extends StatelessWidget {
                   child: Text(
                     s.error!,
                     textDirection: TextDirection.ltr,
-                    style: const TextStyle(color: Colors.redAccent),
+                    style: const TextStyle(color: danger),
                   ),
                 ),
               LuxuryCard(
@@ -67,8 +67,8 @@ class HomeScreen extends StatelessWidget {
                       '${s.balance.toStringAsFixed(2)} USDT',
                       style: const TextStyle(
                         color: gold2,
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 27,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                     const SizedBox(height: 8),

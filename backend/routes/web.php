@@ -14,6 +14,7 @@ Route::post('/control/logout', [AdminDashboardController::class, 'logout'])->nam
 Route::get('/control', [AdminDashboardController::class, 'dashboard'])->name('control.dashboard');
 Route::post('/control/transactions/{transaction}/approve', [AdminDashboardController::class, 'approveTransaction'])->name('control.transactions.approve');
 Route::post('/control/transactions/{transaction}/reject', [AdminDashboardController::class, 'rejectTransaction'])->name('control.transactions.reject');
+Route::post('/control/transactions/{transaction}/status', [AdminDashboardController::class, 'updateTransactionStatus'])->name('control.transactions.status');
 Route::post('/control/users/{user}', [AdminDashboardController::class, 'updateUser'])->name('control.users.update');
 Route::post('/control/wallets', [AdminDashboardController::class, 'storeWallet'])->name('control.wallets.store');
 Route::post('/control/wallets/{wallet}', [AdminDashboardController::class, 'updateWallet'])->name('control.wallets.update');

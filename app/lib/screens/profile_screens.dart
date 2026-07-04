@@ -18,7 +18,7 @@ class VirtualCardScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(color: gold),
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF111111), Color(0xFF262014)],
+                  colors: [panelSoft, Color(0xFF262014)],
                 ),
               ),
               child: const Column(
@@ -26,7 +26,7 @@ class VirtualCardScreen extends StatelessWidget {
                 children: [
                   Text(
                     'USDT STORE',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(fontWeight: FontWeight.w800),
                   ),
                   Text(
                     'VIRTUAL CARD',
@@ -35,7 +35,7 @@ class VirtualCardScreen extends StatelessWidget {
                   Spacer(),
                   Text(
                     '**** **** **** 4567',
-                    style: TextStyle(fontSize: 22, letterSpacing: 2),
+                    style: TextStyle(fontSize: 20, letterSpacing: 2),
                   ),
                   Spacer(),
                   Row(
@@ -46,8 +46,8 @@ class VirtualCardScreen extends StatelessWidget {
                         'VISA',
                         style: TextStyle(
                           color: gold2,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                     ],
@@ -141,7 +141,7 @@ class ProfileScreen extends StatelessWidget {
                     children: [
                       Text(
                         s.userName.isEmpty ? s.email : s.userName,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontWeight: FontWeight.w800),
                       ),
                       Text(
                         'KYC: ${s.kycStatus}',
@@ -243,7 +243,7 @@ class _KycScreenState extends State<KycScreen> {
         InfoRow('حالة التوثيق', context.watch<AppState>().kycStatus),
         if (message != null) ...[
           const SizedBox(height: 12),
-          Text(message!, style: const TextStyle(color: Colors.redAccent)),
+          Text(message!, style: const TextStyle(color: danger)),
         ],
         const SizedBox(height: 14),
         GoldButton(
@@ -344,7 +344,7 @@ class _SupportScreenState extends State<SupportScreen> {
         ),
         const SizedBox(height: 18),
         if (error != null) ...[
-          Text(error!, style: const TextStyle(color: Colors.redAccent)),
+          Text(error!, style: const TextStyle(color: danger)),
           const SizedBox(height: 12),
         ],
         GoldButton(
@@ -396,7 +396,7 @@ class SupportContactTile extends StatelessWidget {
               const SizedBox(height: 4),
               SelectableText(
                 value,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(fontWeight: FontWeight.w800),
               ),
             ],
           ),

@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AppNotification;
+use App\Models\AuditLog;
 use App\Models\FeeSetting;
+use App\Models\KycVerification;
 use App\Models\Network;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Services\AdminTransactionService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -79,24 +83,93 @@ class AdminDashboardController extends Controller
         return redirect()->route('control.login');
     }
 
-    public function dashboard(): View|RedirectResponse
+    public function dashboard(Request $request): View|RedirectResponse
     {
         if (! $this->isAdmin()) {
             return redirect()->route('control.login');
         }
 
+        $query = $request->string('q')->toString();
+        $status = $request->string('status')->toString();
+
+        $transactions = Transaction::with(['user', 'network'])
+            ->when($status !== '', fn (Builder $builder) => $builder->where('status', $status))
+            ->when($query !== '', function (Builder $builder) use ($query) {
+                $builder->where(function (Builder $nested) use ($query) {
+                    if (ctype_digit($query)) {
+                        $nested->where('id', (int) $query);
+                    }
+
+                    $nested->orWhere('txid', 'like', "%{$query}%")
+                        ->orWhere('wallet_address', 'like', "%{$query}%")
+                        ->orWhereHas('user', fn (Builder $user) => $user
+                            ->where('email', 'like', "%{$query}%")
+                            ->orWhere('name', 'like', "%{$query}%"));
+                });
+            })
+            ->latest()
+            ->limit(40)
+            ->get();
+
+        $users = User::withCount(['wallets', 'transactions'])
+            ->when($query !== '', fn (Builder $builder) => $builder
+                ->where('email', 'like', "%{$query}%")
+                ->orWhere('name', 'like', "%{$query}%")
+                ->orWhere('phone', 'like', "%{$query}%"))
+            ->latest()
+            ->limit(40)
+            ->get();
+
+        $dailyMovement = collect(range(6, 0))->map(function (int $daysAgo) {
+            $date = today()->subDays($daysAgo);
+
+            return [
+                'label' => $date->format('m/d'),
+                'amount' => (float) Transaction::whereDate('created_at', $date)->sum('amount'),
+                'count' => Transaction::whereDate('created_at', $date)->count(),
+            ];
+        });
+
+        $monthlyMovement = collect(range(5, 0))->map(function (int $monthsAgo) {
+            $date = today()->subMonths($monthsAgo);
+
+            return [
+                'label' => $date->format('Y-m'),
+                'amount' => (float) Transaction::whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->sum('amount'),
+                'count' => Transaction::whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->count(),
+            ];
+        });
+
         return view('control.dashboard', [
             'stats' => [
+                'balance' => Wallet::sum('balance'),
                 'users' => User::count(),
-                'pending' => Transaction::where('status', 'pending')->count(),
-                'walletBalance' => Wallet::sum('balance'),
-                'todayFees' => Transaction::whereDate('created_at', today())->sum('fee'),
+                'todayTransfers' => Transaction::whereDate('created_at', today())->count(),
+                'pendingTransfers' => Transaction::where('status', 'pending')->count(),
+                'completedTransfers' => Transaction::where('status', 'completed')->count(),
+                'profits' => Transaction::whereIn('status', ['approved', 'completed'])->sum('fee'),
+                'collectedFees' => Transaction::sum('fee'),
+                'activeWallets' => Wallet::count(),
+                'kycPending' => KycVerification::where('status', 'pending')->count(),
+                'notifications' => AppNotification::count(),
             ],
-            'transactions' => Transaction::with(['user', 'network'])->latest()->limit(30)->get(),
-            'users' => User::latest()->limit(30)->get(),
-            'wallets' => Wallet::with(['user', 'network'])->latest('updated_at')->limit(30)->get(),
+            'dailyMovement' => $dailyMovement,
+            'monthlyMovement' => $monthlyMovement,
+            'statusCounts' => Transaction::query()->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status'),
+            'typeCounts' => Transaction::query()->selectRaw('type, count(*) as total')->groupBy('type')->pluck('total', 'type'),
+            'transactions' => $transactions,
+            'users' => $users,
+            'wallets' => Wallet::with(['user', 'network'])->latest('updated_at')->limit(40)->get(),
+            'kycVerifications' => KycVerification::with('user')->latest()->limit(20)->get(),
+            'notifications' => AppNotification::with('user')->latest()->limit(20)->get(),
+            'auditLogs' => AuditLog::with('user')->latest()->limit(25)->get(),
             'networks' => Network::orderBy('name')->get(),
             'fees' => FeeSetting::orderBy('type')->get(),
+            'filters' => ['q' => $query, 'status' => $status],
         ]);
     }
 
@@ -104,6 +177,7 @@ class AdminDashboardController extends Controller
     {
         $this->abortUnlessAdmin();
         $service->approve($transaction);
+        $this->recordAudit('transaction.approve', $transaction, request());
 
         return back()->with('status', 'تم قبول العملية.');
     }
@@ -113,8 +187,30 @@ class AdminDashboardController extends Controller
         $this->abortUnlessAdmin();
         $data = $request->validate(['note' => ['required', 'string', 'max:500']]);
         $service->reject($transaction, $data['note']);
+        $this->recordAudit('transaction.reject', $transaction, $request, ['note' => $data['note']]);
 
         return back()->with('status', 'تم رفض العملية.');
+    }
+
+    public function updateTransactionStatus(Request $request, Transaction $transaction): RedirectResponse
+    {
+        $this->abortUnlessAdmin();
+        $data = $request->validate([
+            'status' => ['required', 'in:pending,approved,rejected,completed,failed'],
+            'note' => ['nullable', 'string', 'max:500'],
+            'txid' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $transaction->update([
+            'status' => $data['status'],
+            'note' => $data['note'] ?? $transaction->note,
+            'txid' => $data['txid'] ?? $transaction->txid,
+            'completed_at' => $data['status'] === 'completed' ? now() : $transaction->completed_at,
+        ]);
+
+        $this->recordAudit('transaction.status_update', $transaction, $request, $data);
+
+        return back()->with('status', 'تم تحديث حالة العملية.');
     }
 
     public function updateUser(Request $request, User $user): RedirectResponse
@@ -127,6 +223,7 @@ class AdminDashboardController extends Controller
         ]);
 
         $user->update($data + ['is_active' => false]);
+        $this->recordAudit('user.update', $user, $request, $data);
 
         return back()->with('status', 'تم تحديث المستخدم.');
     }
@@ -146,6 +243,7 @@ class AdminDashboardController extends Controller
             ['user_id' => $data['user_id'], 'network_id' => $data['network_id']],
             $data + ['is_primary' => false]
         );
+        $this->recordAudit('wallet.store', null, $request, $data);
 
         return back()->with('status', 'تم حفظ المحفظة.');
     }
@@ -160,6 +258,7 @@ class AdminDashboardController extends Controller
         ]);
 
         $wallet->update($data + ['is_primary' => false]);
+        $this->recordAudit('wallet.update', $wallet, $request, $data);
 
         return back()->with('status', 'تم تحديث المحفظة.');
     }
@@ -176,6 +275,7 @@ class AdminDashboardController extends Controller
         ]);
 
         Network::updateOrCreate(['code' => $data['code']], $data + ['is_active' => false]);
+        $this->recordAudit('network.store', null, $request, $data);
 
         return back()->with('status', 'تم حفظ الشبكة.');
     }
@@ -190,6 +290,7 @@ class AdminDashboardController extends Controller
         ]);
 
         $fee->update($data + ['is_active' => false]);
+        $this->recordAudit('fee.update', $fee, $request, $data);
 
         return back()->with('status', 'تم تحديث العمولة.');
     }
@@ -202,5 +303,17 @@ class AdminDashboardController extends Controller
     private function abortUnlessAdmin(): void
     {
         abort_unless($this->isAdmin(), 403);
+    }
+
+    private function recordAudit(string $action, ?object $model, Request $request, array $payload = []): void
+    {
+        AuditLog::create([
+            'user_id' => Auth::id(),
+            'action' => $action,
+            'auditable_type' => $model ? $model::class : null,
+            'auditable_id' => $model?->id,
+            'payload' => $payload + ['user_agent' => $request->userAgent()],
+            'ip' => $request->ip(),
+        ]);
     }
 }
