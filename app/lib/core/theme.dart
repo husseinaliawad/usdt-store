@@ -2,7 +2,7 @@ part of '../main.dart';
 
 const apiBaseUrl = String.fromEnvironment(
   'API_BASE_URL',
-  defaultValue: 'http://10.0.2.2:8001/api',
+  defaultValue: 'https://usdt-store.onrender.com/api',
 );
 const black = Color(0xFF080808);
 const panel = Color(0xFF141414);
