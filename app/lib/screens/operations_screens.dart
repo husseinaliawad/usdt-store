@@ -11,6 +11,7 @@ class _SendScreenState extends State<SendScreen> {
   final address = TextEditingController();
   final amount = TextEditingController(text: '100.00');
   final note = TextEditingController();
+  String? message;
   @override
   Widget build(BuildContext context) => FormPage(
     title: 'إرسال USDT',
@@ -43,32 +44,35 @@ class _SendScreenState extends State<SendScreen> {
           decoration: const InputDecoration(labelText: 'ملاحظة اختيارية'),
         ),
         const SizedBox(height: 24),
+        if (message != null) ...[
+          Text(message!, style: const TextStyle(color: Colors.redAccent)),
+          const SizedBox(height: 12),
+        ],
         GoldButton(
           text: 'متابعة',
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ConfirmScreen(
-                amount: amount.text,
-                network: network,
-                address: address.text,
-                onConfirm: () {
-                  context.read<AppState>().addTx(
-                    Tx(
-                      'إرسال USDT',
-                      'send',
-                      -double.parse(amount.text),
-                      network,
-                      'pending',
-                      'TX${DateTime.now().millisecondsSinceEpoch}',
-                      'الآن',
-                      note: note.text,
-                    ),
-                  );
-                },
+          onTap: () {
+            final parsedAmount = double.tryParse(amount.text);
+            if (address.text.trim().isEmpty || parsedAmount == null) {
+              setState(() => message = 'تأكد من العنوان والمبلغ');
+              return;
+            }
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ConfirmScreen(
+                  amount: amount.text,
+                  network: network,
+                  address: address.text,
+                  onConfirm: () => context.read<AppState>().sendUsdt(
+                    networkCode: network,
+                    address: address.text.trim(),
+                    amount: parsedAmount,
+                    note: note.text.trim(),
+                  ),
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ],
     ),
@@ -84,7 +88,7 @@ class ConfirmScreen extends StatelessWidget {
     required this.onConfirm,
   });
   final String amount, network, address;
-  final VoidCallback onConfirm;
+  final Future<void> Function() onConfirm;
   @override
   Widget build(BuildContext context) => FormPage(
     title: 'تأكيد العملية',
@@ -107,9 +111,17 @@ class ConfirmScreen extends StatelessWidget {
         const SizedBox(height: 24),
         GoldButton(
           text: 'تم',
-          onTap: () {
-            onConfirm();
-            Navigator.popUntil(context, (r) => r.isFirst);
+          onTap: () async {
+            try {
+              await onConfirm();
+              if (!context.mounted) return;
+              Navigator.popUntil(context, (r) => r.isFirst);
+            } catch (e) {
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(e.toString())));
+            }
           },
         ),
       ],
@@ -127,7 +139,8 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   String network = 'TRC20';
   @override
   Widget build(BuildContext context) {
-    final address = 'USDT-$network-DEMO-2450';
+    final appState = context.watch<AppState>();
+    final address = appState.walletByNetwork(network)?.address ?? '';
     return FormPage(
       title: 'استلام USDT',
       child: Column(
@@ -143,16 +156,31 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: QrImageView(data: address, size: 190),
+            child: address.isEmpty
+                ? const SizedBox(width: 190, height: 190)
+                : QrImageView(data: address, size: 190),
           ),
           const SizedBox(height: 18),
           SelectableText(
-            address,
+            address.isEmpty ? 'لا يوجد عنوان لهذه الشبكة' : address,
             textAlign: TextAlign.center,
             style: const TextStyle(color: gold2, fontSize: 16),
           ),
           const SizedBox(height: 16),
-          GoldButton(text: 'نسخ العنوان', icon: Icons.copy, onTap: () {}),
+          GoldButton(
+            text: address.isEmpty ? 'إنشاء عنوان' : 'تحديث العنوان',
+            icon: Icons.refresh,
+            onTap: () async {
+              try {
+                await context.read<AppState>().receiveWallet(network);
+              } catch (e) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(e.toString())));
+              }
+            },
+          ),
         ],
       ),
     );
@@ -169,6 +197,8 @@ class _DepositScreenState extends State<DepositScreen> {
   String network = 'TRC20';
   final amount = TextEditingController();
   final txid = TextEditingController();
+  PlatformFile? proof;
+  String? message;
   @override
   Widget build(BuildContext context) => FormPage(
     title: 'طلب إيداع',
@@ -190,25 +220,46 @@ class _DepositScreenState extends State<DepositScreen> {
           decoration: const InputDecoration(labelText: 'رقم العملية TxID'),
         ),
         const SizedBox(height: 14),
-        const DashedUpload(),
+        InkWell(
+          onTap: () async {
+            final picked = await FilePicker.platform.pickFiles(
+              type: FileType.image,
+              withData: true,
+            );
+            if (picked != null) setState(() => proof = picked.files.single);
+          },
+          child: DashedUpload(
+            text: proof == null ? 'رفع صورة إثبات التحويل' : proof!.name,
+          ),
+        ),
         const SizedBox(height: 22),
+        if (message != null) ...[
+          Text(message!, style: const TextStyle(color: Colors.redAccent)),
+          const SizedBox(height: 12),
+        ],
         GoldButton(
           text: 'إرسال الطلب للمراجعة',
-          onTap: () {
-            context.read<AppState>().addTx(
-              Tx(
-                'إيداع USDT',
-                'deposit',
-                double.tryParse(amount.text) ?? 0,
-                network,
-                'pending',
-                txid.text.isEmpty
-                    ? 'DEP-${DateTime.now().millisecondsSinceEpoch}'
-                    : txid.text,
-                'الآن',
-              ),
-            );
-            Navigator.pop(context);
+          onTap: () async {
+            final parsedAmount = double.tryParse(amount.text);
+            if (parsedAmount == null ||
+                txid.text.trim().isEmpty ||
+                proof == null) {
+              setState(() => message = 'أدخل المبلغ و TxID وارفع صورة الإثبات');
+              return;
+            }
+            try {
+              await context.read<AppState>().deposit(
+                networkCode: network,
+                amount: parsedAmount,
+                txid: txid.text.trim(),
+                proof: proof!,
+              );
+              if (!context.mounted) return;
+              Navigator.pop(context);
+            } catch (e) {
+              if (!context.mounted) return;
+              setState(() => message = e.toString());
+            }
           },
         ),
       ],
@@ -226,6 +277,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
   final amount = TextEditingController();
   final recipient = TextEditingController();
   String method = 'حوالة نقدية';
+  String? message;
   @override
   Widget build(BuildContext context) => FormPage(
     title: 'طلب سحب',
@@ -256,21 +308,30 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
           decoration: const InputDecoration(labelText: 'بيانات المستلم'),
         ),
         const SizedBox(height: 22),
+        if (message != null) ...[
+          Text(message!, style: const TextStyle(color: Colors.redAccent)),
+          const SizedBox(height: 12),
+        ],
         GoldButton(
           text: 'إرسال طلب السحب',
-          onTap: () {
-            context.read<AppState>().addTx(
-              Tx(
-                'سحب USDT',
-                'withdraw',
-                -(double.tryParse(amount.text) ?? 0),
-                'USDT',
-                'pending',
-                'WD-${DateTime.now().millisecondsSinceEpoch}',
-                'الآن',
-              ),
-            );
-            Navigator.pop(context);
+          onTap: () async {
+            final parsedAmount = double.tryParse(amount.text);
+            if (parsedAmount == null || recipient.text.trim().isEmpty) {
+              setState(() => message = 'أدخل المبلغ وبيانات المستلم');
+              return;
+            }
+            try {
+              await context.read<AppState>().withdraw(
+                amount: parsedAmount,
+                method: method,
+                recipient: recipient.text.trim(),
+              );
+              if (!context.mounted) return;
+              Navigator.pop(context);
+            } catch (e) {
+              if (!context.mounted) return;
+              setState(() => message = e.toString());
+            }
           },
         ),
       ],

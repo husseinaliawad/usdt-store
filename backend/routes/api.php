@@ -10,8 +10,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/health', fn () => response()->json(['ok' => true]));
 
-Route::middleware('throttle:otp')->post('/auth/request-otp', [AuthController::class, 'requestOtp']);
-Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp']);
+Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
 
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {

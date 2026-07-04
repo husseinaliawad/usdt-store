@@ -139,35 +139,50 @@ class AccountSummaryGrid extends StatelessWidget {
   const AccountSummaryGrid({super.key});
 
   @override
-  Widget build(BuildContext context) => LuxuryCard(
-    child: GridView.count(
-      crossAxisCount: 4,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: .9,
-      children: const [
-        SummaryMetric(
-          Icons.account_balance_wallet_outlined,
-          'الحساب',
-          'أساسي',
-          gold,
-        ),
-        SummaryMetric(Icons.swap_horiz_rounded, 'عدد العمليات', '24', gold2),
-        SummaryMetric(
-          Icons.arrow_upward_rounded,
-          'السحوبات',
-          r'$2,150',
-          Color(0xFFFF4D6D),
-        ),
-        SummaryMetric(
-          Icons.arrow_downward_rounded,
-          'الإيداعات',
-          r'$5,250',
-          Color(0xFF62D26F),
-        ),
-      ],
-    ),
-  );
+  Widget build(BuildContext context) {
+    final s = context.watch<AppState>();
+    final deposits = s.txs
+        .where((t) => t.type == 'deposit' || t.type == 'receive')
+        .fold<double>(0, (p, t) => p + t.amount.abs());
+    final withdrawals = s.txs
+        .where((t) => t.type == 'withdraw' || t.type == 'send')
+        .fold<double>(0, (p, t) => p + t.amount.abs());
+
+    return LuxuryCard(
+      child: GridView.count(
+        crossAxisCount: 4,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        childAspectRatio: .9,
+        children: [
+          SummaryMetric(
+            Icons.account_balance_wallet_outlined,
+            'الحساب',
+            s.wallets.length.toString(),
+            gold,
+          ),
+          SummaryMetric(
+            Icons.swap_horiz_rounded,
+            'عدد العمليات',
+            s.txs.length.toString(),
+            gold2,
+          ),
+          SummaryMetric(
+            Icons.arrow_upward_rounded,
+            'السحوبات',
+            withdrawals.toStringAsFixed(2),
+            const Color(0xFFFF4D6D),
+          ),
+          SummaryMetric(
+            Icons.arrow_downward_rounded,
+            'الإيداعات',
+            deposits.toStringAsFixed(2),
+            const Color(0xFF62D26F),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class SummaryMetric extends StatelessWidget {
@@ -326,16 +341,23 @@ class NetworkDropdown extends StatelessWidget {
   final String value;
   final ValueChanged<String?> onChanged;
   @override
-  Widget build(BuildContext context) => DropdownButtonFormField(
-    value: value,
-    decoration: const InputDecoration(labelText: 'الشبكة'),
-    items: context
-        .read<AppState>()
+  Widget build(BuildContext context) {
+    final codes = context
+        .watch<AppState>()
         .networks
-        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-        .toList(),
-    onChanged: onChanged,
-  );
+        .map((e) => e.code)
+        .toList();
+    final items = codes.isEmpty ? [value] : codes;
+    final selected = items.contains(value) ? value : items.first;
+    return DropdownButtonFormField(
+      value: selected,
+      decoration: const InputDecoration(labelText: 'الشبكة'),
+      items: items
+          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+          .toList(),
+      onChanged: onChanged,
+    );
+  }
 }
 
 class InfoRow extends StatelessWidget {

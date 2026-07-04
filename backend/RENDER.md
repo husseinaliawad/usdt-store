@@ -21,13 +21,9 @@ SESSION_DRIVER=database
 CACHE_STORE=database
 QUEUE_CONNECTION=sync
 
-MAIL_MAILER=smtp
-MAIL_SCHEME=smtps
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=465
-MAIL_USERNAME=your-gmail-address@gmail.com
-MAIL_PASSWORD=your-google-app-password
-MAIL_FROM_ADDRESS=your-gmail-address@gmail.com
+MAIL_MAILER=resend
+RESEND_API_KEY=re_xxxxxxxxx
+MAIL_FROM_ADDRESS=no-reply@your-verified-domain.com
 MAIL_FROM_NAME="USDT STORE"
 
 RUN_MIGRATIONS=true
@@ -40,7 +36,7 @@ Generate `APP_KEY` locally with:
 php artisan key:generate --show
 ```
 
-For Gmail, `MAIL_PASSWORD` must be a Google App Password, not the normal Gmail account password. `MAIL_FROM_ADDRESS` should match `MAIL_USERNAME` unless the Gmail account has that sender alias configured.
+For Resend, `MAIL_FROM_ADDRESS` must use a domain verified in your Resend account.
 
 After Render deploys, the mobile API base URL should be:
 

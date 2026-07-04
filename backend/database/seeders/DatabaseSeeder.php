@@ -38,11 +38,21 @@ class DatabaseSeeder extends Seeder
             ['name' => 'BEP20', 'code' => 'BEP20', 'withdraw_fee' => 1.5],
             ['name' => 'Arbitrum', 'code' => 'ARBITRUM', 'withdraw_fee' => 0.8],
             ['name' => 'Solana', 'code' => 'SOLANA', 'withdraw_fee' => 0.5],
+            ['name' => 'Sham Cash', 'code' => 'SHAM_CASH', 'withdraw_fee' => 0],
         ])->each(fn ($network) => Network::updateOrCreate(['code' => $network['code']], $network + ['send_fee_percent' => 0.2]));
+
+        $depositAddresses = [
+            'TRC20' => 'TBW6yG3RkgFZEUJpJ6U7Mhhi9shTQPRQDo',
+            'SHAM_CASH' => 'FQy4HArVdBbZ87AHrbfdhSXRgyE5NUbrh6GaL8enMUeh',
+        ];
 
         Network::all()->each(fn ($network) => Wallet::updateOrCreate(
             ['user_id' => $user->id, 'network_id' => $network->id],
-            ['address' => 'USDT-'.$network->code.'-DEMO-'.$user->id, 'balance' => $network->code === 'TRC20' ? 2450 : 0, 'is_primary' => $network->code === 'TRC20']
+            [
+                'address' => $depositAddresses[$network->code] ?? 'USDT-'.$network->code.'-DEMO-'.$user->id,
+                'balance' => $network->code === 'TRC20' ? 2450 : 0,
+                'is_primary' => $network->code === 'TRC20',
+            ]
         ));
 
         FeeSetting::updateOrCreate(['type' => 'withdraw'], ['name' => 'رسوم السحب', 'fixed_fee' => 1, 'percent_fee' => 0.25, 'is_active' => true]);

@@ -14,7 +14,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $resendGlobalClass = base_path('vendor/resend/resend-php/src/Resend.php');
+
+        if (! class_exists('Resend') && file_exists($resendGlobalClass)) {
+            require_once $resendGlobalClass;
+        }
     }
 
     /**
