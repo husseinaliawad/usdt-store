@@ -186,6 +186,9 @@ class AdminDashboardController extends Controller
             'filters' => ['q' => $query, 'status' => $status],
             'page' => $section,
             'sections' => $this->sections(),
+            'statusLabels' => $this->statusLabels(),
+            'typeLabels' => $this->typeLabels(),
+            'statusClass' => $this->statusClass(),
         ]);
     }
 
@@ -368,6 +371,38 @@ class AdminDashboardController extends Controller
             'security' => ['label' => 'الأمان', 'icon' => '⎋', 'group' => 'النظام'],
             'settings' => ['label' => 'الإعدادات', 'icon' => '⚙', 'group' => 'النظام'],
             'support' => ['label' => 'الدعم الفني', 'icon' => '?', 'group' => 'النظام'],
+        ];
+    }
+
+    private function statusLabels(): array
+    {
+        return [
+            'pending' => 'قيد المراجعة',
+            'approved' => 'قيد التنفيذ',
+            'completed' => 'مكتملة',
+            'rejected' => 'مرفوضة',
+            'failed' => 'ملغاة / فاشلة',
+        ];
+    }
+
+    private function typeLabels(): array
+    {
+        return [
+            'send' => 'إرسال',
+            'receive' => 'استلام',
+            'deposit' => 'إيداع',
+            'withdraw' => 'سحب',
+        ];
+    }
+
+    private function statusClass(): array
+    {
+        return [
+            'pending' => 'blue',
+            'approved' => 'purple',
+            'completed' => 'green',
+            'rejected' => 'red',
+            'failed' => 'red',
         ];
     }
 }

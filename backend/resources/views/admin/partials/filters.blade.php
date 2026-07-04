@@ -1,4 +1,10 @@
-<form class="toolbar" method="get" action="{{ $sectionUrl($page) }}">
+@php
+    $filterAction = $page === 'overview'
+        ? route('control.dashboard', [], false)
+        : route('control.section', ['section' => $page], false);
+@endphp
+
+<form class="toolbar" method="get" action="{{ $filterAction }}">
     <input name="q" value="{{ $filters['q'] }}" placeholder="بحث: مستخدم، بريد، رقم عملية، TXID، عنوان محفظة">
     <select name="status">
         <option value="">كل حالات التحويل</option>

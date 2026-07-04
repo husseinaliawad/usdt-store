@@ -1,24 +1,4 @@
 @php
-    $statusLabels = [
-        'pending' => 'قيد المراجعة',
-        'approved' => 'قيد التنفيذ',
-        'completed' => 'مكتملة',
-        'rejected' => 'مرفوضة',
-        'failed' => 'ملغاة / فاشلة',
-    ];
-    $typeLabels = [
-        'send' => 'إرسال',
-        'receive' => 'استلام',
-        'deposit' => 'إيداع',
-        'withdraw' => 'سحب',
-    ];
-    $statusClass = [
-        'pending' => 'blue',
-        'approved' => 'purple',
-        'completed' => 'green',
-        'rejected' => 'red',
-        'failed' => 'red',
-    ];
     $pageTitle = $sections[$page]['label'] ?? 'لوحة التحكم';
     $sectionUrl = fn ($key) => $key === 'overview'
         ? route('control.dashboard', [], false)
