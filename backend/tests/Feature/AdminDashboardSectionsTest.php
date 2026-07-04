@@ -18,7 +18,11 @@ class AdminDashboardSectionsTest extends TestCase
             'is_active' => true,
         ]);
 
-        $this->actingAs($admin)->get(route('control.dashboard'))->assertOk();
+        $this->actingAs($admin)
+            ->get(route('control.dashboard'))
+            ->assertOk()
+            ->assertSee('.shell', false)
+            ->assertSee('/css/admin.css', false);
 
         foreach ([
             'transfers',
