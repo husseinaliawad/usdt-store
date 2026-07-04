@@ -34,8 +34,15 @@ class HomeScreen extends StatelessWidget {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const Spacer(),
-                  const CircleAvatar(
-                    backgroundImage: AssetImage('assets/images/logo.jpg'),
+                  CircleAvatar(
+                    backgroundColor: Colors.transparent,
+                    child: ClipOval(
+                      child: BrandLogo(
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
                   ),
                 ],
               ),

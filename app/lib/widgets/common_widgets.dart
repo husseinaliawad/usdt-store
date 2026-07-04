@@ -26,11 +26,9 @@ class BrandBlock extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min,
     children: [
-      Image.asset(
-        'assets/images/logo.jpg',
+      BrandLogo(
         width: big ? 190 : 130,
         height: big ? 190 : 130,
-        fit: BoxFit.contain,
       ),
       const SizedBox(height: 12),
       Text(
@@ -45,6 +43,27 @@ class BrandBlock extends StatelessWidget {
       const Text('محفظتك الرقمية الآمنة', style: TextStyle(color: gold)),
     ],
   );
+}
+
+class BrandLogo extends StatelessWidget {
+  const BrandLogo({
+    super.key,
+    this.width,
+    this.height,
+    this.fit = BoxFit.contain,
+  });
+
+  final double? width;
+  final double? height;
+  final BoxFit fit;
+
+  @override
+  Widget build(BuildContext context) => SvgPicture.asset(
+        'assets/images/logo.svg',
+        width: width,
+        height: height,
+        fit: fit,
+      );
 }
 
 class LuxuryCard extends StatelessWidget {

@@ -124,9 +124,16 @@ class ProfileScreen extends StatelessWidget {
             LuxuryCard(
               child: Row(
                 children: [
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 28,
-                    backgroundImage: AssetImage('assets/images/logo.jpg'),
+                    backgroundColor: Colors.transparent,
+                    child: ClipOval(
+                      child: BrandLogo(
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 14),
                   Column(

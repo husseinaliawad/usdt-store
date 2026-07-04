@@ -24,13 +24,33 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> login(String value) async {
+  Future<void> login(String value, String password) async {
     email = value;
     _clearSession();
     notifyListeners();
     final data = await api.post('/auth/login', {
       'email': value,
-      'name': userName.isEmpty ? 'USDT STORE User' : userName,
+      'password': password,
+    });
+    api.token = data['token'] as String?;
+    _applyUser(data['user'] as Map<String, dynamic>?);
+    await refreshAll();
+  }
+
+  Future<void> register({
+    required String name,
+    required String email,
+    required String password,
+    String? phone,
+  }) async {
+    this.email = email;
+    _clearSession();
+    notifyListeners();
+    final data = await api.post('/auth/register', {
+      'name': name,
+      'email': email,
+      'password': password,
+      if (phone != null && phone.isNotEmpty) 'phone': phone,
     });
     api.token = data['token'] as String?;
     _applyUser(data['user'] as Map<String, dynamic>?);

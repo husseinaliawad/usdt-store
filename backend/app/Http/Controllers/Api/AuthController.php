@@ -7,6 +7,7 @@ use App\Models\Network;
 use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
@@ -15,17 +16,18 @@ class AuthController extends Controller
     {
         $data = $request->validate([
             'email' => ['required', 'email', 'max:255'],
-            'name' => ['nullable', 'string', 'max:120'],
+            'password' => ['required', 'string'],
         ]);
 
-        $user = User::firstOrCreate(
-            ['email' => $data['email']],
-            [
-                'name' => $data['name'] ?? 'USDT STORE User',
-                'phone' => $data['email'],
-                'role' => 'user',
-            ]
-        );
+        $user = User::where('email', $data['email'])->first();
+
+        if (! $user || ! $user->password || ! Hash::check($data['password'], $user->password)) {
+            return response()->json(['message' => 'Invalid email or password'], 422);
+        }
+
+        if (! $user->is_active) {
+            return response()->json(['message' => 'Account is disabled'], 403);
+        }
 
         $this->ensureWallets($user);
 
@@ -41,13 +43,19 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users')],
             'phone' => ['nullable', 'string', 'max:30', Rule::unique('users')],
-            'password' => ['nullable', 'string', 'min:8'],
+            'password' => ['required', 'string', 'min:8'],
         ]);
 
         $data['phone'] ??= $data['email'];
+        $data['role'] = 'user';
 
         $user = User::create($data);
-        return response()->json(['user' => $user], 201);
+        $this->ensureWallets($user);
+
+        return response()->json([
+            'token' => $user->createToken('mobile')->plainTextToken,
+            'user' => $user,
+        ], 201);
     }
 
     public function me(Request $request)

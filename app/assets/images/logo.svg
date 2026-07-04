@@ -1,0 +1,61 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gold" x1="180" y1="120" x2="850" y2="890" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFF2A6"/>
+      <stop offset="0.22" stop-color="#F6C34B"/>
+      <stop offset="0.48" stop-color="#B47A1E"/>
+      <stop offset="0.72" stop-color="#FFE07A"/>
+      <stop offset="1" stop-color="#C48A2B"/>
+    </linearGradient>
+    <linearGradient id="goldSoft" x1="300" y1="250" x2="740" y2="780" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFF7B8"/>
+      <stop offset="0.35" stop-color="#FFD15A"/>
+      <stop offset="1" stop-color="#A66A16"/>
+    </linearGradient>
+  </defs>
+
+  <!-- transparent background -->
+  <g stroke="url(#gold)" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="512" cy="512" r="382" stroke-width="26"/>
+    <circle cx="512" cy="512" r="330" stroke-width="10" opacity="0.95"/>
+  </g>
+
+  <!-- small Syrian flag -->
+  <g transform="translate(407 176)">
+    <rect x="0" y="0" width="210" height="82" rx="10" fill="#F8F8F8" stroke="url(#gold)" stroke-width="6"/>
+    <path d="M8 8H202V33H8V8Z" fill="#178A3D"/>
+    <path d="M8 58H202V74H8V58Z" fill="#111111" opacity="0.9"/>
+    <path d="M78 45L84 32L90 45L104 46L93 55L97 69L84 61L71 69L75 55L64 46L78 45Z" fill="#D21F2B"/>
+    <path d="M126 45L132 32L138 45L152 46L141 55L145 69L132 61L119 69L123 55L112 46L126 45Z" fill="#D21F2B"/>
+  </g>
+
+  <!-- USDT-like mark -->
+  <g fill="url(#goldSoft)">
+    <path d="M300 315H724V394H573V700H452V394H300V315Z"/>
+    <path d="M512 446C385 446 282 414 282 374C282 334 385 303 512 303C639 303 742 334 742 374C742 414 639 446 512 446ZM512 402C604 402 679 389 679 374C679 359 604 346 512 346C420 346 345 359 345 374C345 389 420 402 512 402Z"/>
+    <path d="M452 548C357 540 282 510 282 474C282 451 313 430 363 416C346 429 336 443 336 459C336 489 386 513 452 522V548Z" opacity="0.92"/>
+    <path d="M573 522C639 513 689 489 689 459C689 443 678 429 661 416C711 430 742 451 742 474C742 510 668 540 573 548V522Z" opacity="0.92"/>
+  </g>
+
+  <!-- decorative right geometric strokes -->
+  <g stroke="url(#gold)" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" opacity="0.98">
+    <path d="M670 360L772 464L670 568"/>
+    <path d="M625 410L730 515L625 620"/>
+    <path d="M724 364L805 445L724 526"/>
+    <path d="M748 610L805 553"/>
+  </g>
+
+  <!-- laurels -->
+  <g fill="url(#gold)" opacity="0.95">
+    <path d="M260 619C224 662 205 716 202 778C235 732 263 685 284 629L260 619Z"/>
+    <path d="M302 676C262 704 239 741 230 786C269 759 300 727 322 688L302 676Z"/>
+    <path d="M335 731C300 748 277 776 265 812C302 797 332 774 353 742L335 731Z"/>
+    <path d="M764 619C800 662 819 716 822 778C789 732 761 685 740 629L764 619Z"/>
+    <path d="M722 676C762 704 785 741 794 786C755 759 724 727 702 688L722 676Z"/>
+    <path d="M689 731C724 748 747 776 759 812C722 797 692 774 671 742L689 731Z"/>
+  </g>
+
+  <!-- Arabic text converted as text so it stays editable; uses system Arabic font when opened -->
+  <text x="512" y="810" text-anchor="middle" direction="rtl" unicode-bidi="plaintext"
+        font-family="Cairo, Tajawal, Arial, sans-serif" font-size="92" font-weight="800" fill="url(#gold)">سوريا ستور</text>
+</svg>

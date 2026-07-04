@@ -187,6 +187,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   }
 }
 
+
 class DepositScreen extends StatefulWidget {
   const DepositScreen({super.key});
   @override
@@ -199,72 +200,225 @@ class _DepositScreenState extends State<DepositScreen> {
   final txid = TextEditingController();
   PlatformFile? proof;
   String? message;
+
   @override
-  Widget build(BuildContext context) => FormPage(
-    title: 'طلب إيداع',
-    child: Column(
-      children: [
-        NetworkDropdown(
-          value: network,
-          onChanged: (v) => setState(() => network = v!),
-        ),
-        const SizedBox(height: 14),
-        TextField(
-          controller: amount,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(labelText: 'المبلغ'),
-        ),
-        const SizedBox(height: 14),
-        TextField(
-          controller: txid,
-          decoration: const InputDecoration(labelText: 'رقم العملية TxID'),
-        ),
-        const SizedBox(height: 14),
-        InkWell(
-          onTap: () async {
-            final picked = await FilePicker.platform.pickFiles(
-              type: FileType.image,
-              withData: true,
-            );
-            if (picked != null) setState(() => proof = picked.files.single);
-          },
-          child: DashedUpload(
-            text: proof == null ? 'رفع صورة إثبات التحويل' : proof!.name,
+  void dispose() {
+    amount.dispose();
+    txid.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final appState = context.watch<AppState>();
+    final wallet = appState.walletByNetwork(network);
+    final address = wallet?.address ?? '';
+
+    return OperationPageShell(
+      selectedIndex: 0,
+      onDeposit: () {},
+      onWithdraw: () => Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const WithdrawScreen()),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          OperationCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const GoldLabel('اختر العملة'),
+                StyledSelectField(
+                  value: 'USDT - $network',
+                  icon: Icons.keyboard_arrow_down_rounded,
+                  trailing: const TetherBadge(),
+                  onTap: () {},
+                ),
+                const SizedBox(height: 16),
+                const GoldLabel('شبكة الإيداع'),
+                StyledNetworkDropdown(
+                  value: network,
+                  onChanged: (v) => setState(() => network = v ?? network),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'تأكد من اختيار نفس الشبكة عند الإرسال',
+                  textAlign: TextAlign.left,
+                  style: TextStyle(color: muted, fontSize: 12),
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 22),
-        if (message != null) ...[
-          Text(message!, style: const TextStyle(color: Colors.redAccent)),
+          OperationCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const GoldLabel('مبلغ الإيداع'),
+                GoldInputField(
+                  controller: amount,
+                  hint: 'أدخل المبلغ',
+                  suffix: 'USDT',
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: ['100', '500', '1,000', '5,000']
+                      .map(
+                        (v) => Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 3),
+                            child: AmountChip(
+                              text: v,
+                              onTap: () => setState(
+                                () => amount.text = v.replaceAll(',', ''),
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ],
+            ),
+          ),
+          OperationCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const GoldLabel('تفاصيل الإيداع'),
+                const SizedBox(height: 8),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: gold.withValues(alpha: .16),
+                            blurRadius: 18,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: address.isEmpty
+                          ? const SizedBox(width: 128, height: 128)
+                          : QrImageView(data: address, size: 128),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Text(
+                            'عنوان المحفظة',
+                            textAlign: TextAlign.right,
+                            style: TextStyle(color: muted, fontSize: 13),
+                          ),
+                          const SizedBox(height: 8),
+                          SelectableText(
+                            address.isEmpty
+                                ? 'لا يوجد عنوان لهذه الشبكة'
+                                : _shortAddress(address),
+                            textAlign: TextAlign.right,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          MiniGoldAction(
+                            text: address.isEmpty ? 'إنشاء العنوان' : 'تحديث العنوان',
+                            icon: Icons.refresh_rounded,
+                            onTap: () async {
+                              try {
+                                await context.read<AppState>().receiveWallet(network);
+                              } catch (e) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(e.toString())),
+                                );
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 10),
+                          MiniGoldAction(
+                            text: 'مشاركة العنوان',
+                            icon: Icons.share_rounded,
+                            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('انسخ العنوان من النص الظاهر')),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                const GoldLabel('رقم العملية TxID'),
+                GoldInputField(controller: txid, hint: 'أدخل TxID بعد التحويل'),
+                const SizedBox(height: 12),
+                InkWell(
+                  onTap: () async {
+                    final picked = await FilePicker.platform.pickFiles(
+                      type: FileType.image,
+                      withData: true,
+                    );
+                    if (picked != null) setState(() => proof = picked.files.single);
+                  },
+                  borderRadius: BorderRadius.circular(16),
+                  child: DashedUpload(
+                    text: proof == null ? 'رفع صورة إثبات التحويل' : proof!.name,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                const ImportantNotes(
+                  items: [
+                    'الحد الأدنى للإيداع: 10 USDT',
+                    'سيتم إضافة المبلغ إلى حسابك بعد تأكيد الشبكة.',
+                    'لا تقم بإرسال أي أصول أخرى إلى هذا العنوان.',
+                  ],
+                ),
+              ],
+            ),
+          ),
+          if (message != null) ...[
+            const SizedBox(height: 8),
+            Text(message!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.redAccent)),
+          ],
           const SizedBox(height: 12),
+          GoldButton(
+            text: 'إرسال طلب الإيداع',
+            icon: Icons.check_rounded,
+            onTap: () async {
+              final parsedAmount = double.tryParse(amount.text);
+              if (parsedAmount == null || txid.text.trim().isEmpty || proof == null) {
+                setState(() => message = 'أدخل المبلغ و TxID وارفع صورة الإثبات');
+                return;
+              }
+              try {
+                await context.read<AppState>().deposit(
+                  networkCode: network,
+                  amount: parsedAmount,
+                  txid: txid.text.trim(),
+                  proof: proof!,
+                );
+                if (!context.mounted) return;
+                Navigator.pop(context);
+              } catch (e) {
+                if (!context.mounted) return;
+                setState(() => message = e.toString());
+              }
+            },
+          ),
         ],
-        GoldButton(
-          text: 'إرسال الطلب للمراجعة',
-          onTap: () async {
-            final parsedAmount = double.tryParse(amount.text);
-            if (parsedAmount == null ||
-                txid.text.trim().isEmpty ||
-                proof == null) {
-              setState(() => message = 'أدخل المبلغ و TxID وارفع صورة الإثبات');
-              return;
-            }
-            try {
-              await context.read<AppState>().deposit(
-                networkCode: network,
-                amount: parsedAmount,
-                txid: txid.text.trim(),
-                proof: proof!,
-              );
-              if (!context.mounted) return;
-              Navigator.pop(context);
-            } catch (e) {
-              if (!context.mounted) return;
-              setState(() => message = e.toString());
-            }
-          },
-        ),
-      ],
-    ),
-  );
+      ),
+    );
+  }
 }
 
 class WithdrawScreen extends StatefulWidget {
@@ -276,67 +430,619 @@ class WithdrawScreen extends StatefulWidget {
 class _WithdrawScreenState extends State<WithdrawScreen> {
   final amount = TextEditingController();
   final recipient = TextEditingController();
-  String method = 'حوالة نقدية';
+  String network = 'TRC20';
   String? message;
+
   @override
-  Widget build(BuildContext context) => FormPage(
-    title: 'طلب سحب',
-    child: Column(
+  void dispose() {
+    amount.dispose();
+    recipient.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final appState = context.watch<AppState>();
+    final available = appState.balance;
+    const fee = 1.00;
+    const minWithdraw = 10.00;
+    final parsedAmount = double.tryParse(amount.text) ?? 0;
+    final received = (parsedAmount - fee).clamp(0, double.infinity);
+
+    return OperationPageShell(
+      selectedIndex: 1,
+      onDeposit: () => Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const DepositScreen()),
+      ),
+      onWithdraw: () {},
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          OperationCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const GoldLabel('اختر العملة'),
+                StyledSelectField(
+                  value: 'USDT - $network',
+                  icon: Icons.keyboard_arrow_down_rounded,
+                  trailing: const TetherBadge(),
+                  onTap: () {},
+                ),
+                const SizedBox(height: 16),
+                const GoldLabel('عنوان السحب'),
+                GoldInputField(
+                  controller: recipient,
+                  hint: 'أدخل عنوان المحفظة',
+                  prefixIcon: Icons.qr_code_scanner_rounded,
+                ),
+                const SizedBox(height: 16),
+                const GoldLabel('شبكة السحب'),
+                StyledNetworkDropdown(
+                  value: network,
+                  onChanged: (v) => setState(() => network = v ?? network),
+                ),
+                const SizedBox(height: 16),
+                const GoldLabel('مبلغ السحب'),
+                GoldInputField(
+                  controller: amount,
+                  hint: 'أدخل المبلغ',
+                  suffix: 'USDT',
+                  keyboardType: TextInputType.number,
+                  onChanged: (_) => setState(() {}),
+                ),
+                const SizedBox(height: 10),
+                Text.rich(
+                  TextSpan(
+                    text: 'المتاح للسحب: ',
+                    style: const TextStyle(color: muted, fontSize: 13),
+                    children: [
+                      TextSpan(
+                        text: '${available.toStringAsFixed(2)} USDT',
+                        style: const TextStyle(
+                          color: gold2,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.left,
+                ),
+              ],
+            ),
+          ),
+          OperationCard(
+            child: Column(
+              children: [
+                InfoRow('رسوم الشبكة', '${fee.toStringAsFixed(2)} USDT'),
+                InfoRow('الحد الأدنى للسحب', '${minWithdraw.toStringAsFixed(2)} USDT'),
+                InfoRow('الصافي المتوقع', '${received.toStringAsFixed(2)} USDT'),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: gold.withValues(alpha: .08),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: gold.withValues(alpha: .45)),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.gpp_good_rounded, color: gold2, size: 34),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'يرجى التأكد من صحة عنوان المحفظة والشبكة. لا يمكن التراجع عن عملية السحب بعد تأكيدها.',
+                          textAlign: TextAlign.right,
+                          style: TextStyle(color: gold2, height: 1.5),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (message != null) ...[
+            const SizedBox(height: 8),
+            Text(message!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.redAccent)),
+          ],
+          const SizedBox(height: 12),
+          GoldButton(
+            text: 'تأكيد السحب',
+            icon: Icons.check_rounded,
+            onTap: () async {
+              final parsedAmount = double.tryParse(amount.text);
+              if (parsedAmount == null || recipient.text.trim().isEmpty) {
+                setState(() => message = 'أدخل المبلغ وعنوان المحفظة');
+                return;
+              }
+              try {
+                await context.read<AppState>().withdraw(
+                  amount: parsedAmount,
+                  method: 'عنوان محفظة - $network',
+                  recipient: recipient.text.trim(),
+                );
+                if (!context.mounted) return;
+                Navigator.pop(context);
+              } catch (e) {
+                if (!context.mounted) return;
+                setState(() => message = e.toString());
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class OperationPageShell extends StatelessWidget {
+  const OperationPageShell({
+    super.key,
+    required this.selectedIndex,
+    required this.child,
+    required this.onDeposit,
+    required this.onWithdraw,
+  });
+
+  final int selectedIndex;
+  final Widget child;
+  final VoidCallback onDeposit;
+  final VoidCallback onWithdraw;
+
+  @override
+  Widget build(BuildContext context) => BrandScaffold(
+    child: SafeArea(
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(18, 8, 18, 110),
+        children: [
+          Row(
+            children: [
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: gold2),
+              ),
+              const Expanded(
+                child: Text(
+                  'الإيداع والسحب',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: gold2,
+                    fontSize: 21,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(Icons.history_rounded, color: gold2),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          OperationSegmentedTabs(
+            selectedIndex: selectedIndex,
+            onDeposit: onDeposit,
+            onWithdraw: onWithdraw,
+          ),
+          const SizedBox(height: 14),
+          child,
+        ],
+      ),
+    ),
+  );
+}
+
+class OperationSegmentedTabs extends StatelessWidget {
+  const OperationSegmentedTabs({
+    super.key,
+    required this.selectedIndex,
+    required this.onDeposit,
+    required this.onWithdraw,
+  });
+
+  final int selectedIndex;
+  final VoidCallback onDeposit;
+  final VoidCallback onWithdraw;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    height: 56,
+    padding: const EdgeInsets.all(5),
+    decoration: BoxDecoration(
+      color: const Color(0xFF101010),
+      borderRadius: BorderRadius.circular(15),
+      border: Border.all(color: gold.withValues(alpha: .20)),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: .35),
+          blurRadius: 18,
+          offset: const Offset(0, 10),
+        ),
+      ],
+    ),
+    child: Row(
       children: [
-        TextField(
-          controller: amount,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'المبلغ',
-            suffixText: 'USDT',
+        Expanded(
+          child: SegmentButton(
+            text: 'إيداع',
+            selected: selectedIndex == 0,
+            onTap: onDeposit,
           ),
         ),
-        const SizedBox(height: 14),
-        DropdownButtonFormField(
-          value: method,
-          decoration: const InputDecoration(labelText: 'طريقة السحب'),
-          items: [
-            'حوالة نقدية',
-            'حساب بنكي',
-            'عنوان محفظة',
-          ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-          onChanged: (v) => setState(() => method = v!),
-        ),
-        const SizedBox(height: 14),
-        TextField(
-          controller: recipient,
-          decoration: const InputDecoration(labelText: 'بيانات المستلم'),
-        ),
-        const SizedBox(height: 22),
-        if (message != null) ...[
-          Text(message!, style: const TextStyle(color: Colors.redAccent)),
-          const SizedBox(height: 12),
-        ],
-        GoldButton(
-          text: 'إرسال طلب السحب',
-          onTap: () async {
-            final parsedAmount = double.tryParse(amount.text);
-            if (parsedAmount == null || recipient.text.trim().isEmpty) {
-              setState(() => message = 'أدخل المبلغ وبيانات المستلم');
-              return;
-            }
-            try {
-              await context.read<AppState>().withdraw(
-                amount: parsedAmount,
-                method: method,
-                recipient: recipient.text.trim(),
-              );
-              if (!context.mounted) return;
-              Navigator.pop(context);
-            } catch (e) {
-              if (!context.mounted) return;
-              setState(() => message = e.toString());
-            }
-          },
+        const SizedBox(width: 6),
+        Expanded(
+          child: SegmentButton(
+            text: 'سحب',
+            selected: selectedIndex == 1,
+            onTap: onWithdraw,
+          ),
         ),
       ],
     ),
   );
+}
+
+class SegmentButton extends StatelessWidget {
+  const SegmentButton({
+    super.key,
+    required this.text,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String text;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(12),
+    child: AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        gradient: selected ? const LinearGradient(colors: [gold, gold2]) : null,
+        color: selected ? null : Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: selected
+            ? [
+                BoxShadow(
+                  color: gold.withValues(alpha: .25),
+                  blurRadius: 18,
+                  offset: const Offset(0, 6),
+                ),
+              ]
+            : null,
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: selected ? Colors.black : muted,
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
+      ),
+    ),
+  );
+}
+
+class OperationCard extends StatelessWidget {
+  const OperationCard({super.key, required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    margin: const EdgeInsets.only(bottom: 14),
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      gradient: const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFF181818), Color(0xFF090909)],
+      ),
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(color: gold.withValues(alpha: .25)),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: .45),
+          blurRadius: 22,
+          offset: const Offset(0, 12),
+        ),
+      ],
+    ),
+    child: child,
+  );
+}
+
+class GoldLabel extends StatelessWidget {
+  const GoldLabel(this.text, {super.key});
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Text(
+      text,
+      textAlign: TextAlign.right,
+      style: const TextStyle(
+        color: gold2,
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+  );
+}
+
+class GoldInputField extends StatelessWidget {
+  const GoldInputField({
+    super.key,
+    required this.controller,
+    required this.hint,
+    this.suffix,
+    this.prefixIcon,
+    this.keyboardType,
+    this.onChanged,
+  });
+
+  final TextEditingController controller;
+  final String hint;
+  final String? suffix;
+  final IconData? prefixIcon;
+  final TextInputType? keyboardType;
+  final ValueChanged<String>? onChanged;
+
+  @override
+  Widget build(BuildContext context) => TextField(
+    controller: controller,
+    keyboardType: keyboardType,
+    onChanged: onChanged,
+    textAlign: TextAlign.right,
+    decoration: InputDecoration(
+      hintText: hint,
+      prefixIcon: prefixIcon == null ? null : Icon(prefixIcon, color: gold2),
+      suffixText: suffix,
+      suffixStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      filled: true,
+      fillColor: const Color(0xFF111111),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: gold.withValues(alpha: .38)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: gold2, width: 1.2),
+      ),
+    ),
+  );
+}
+
+class StyledNetworkDropdown extends StatelessWidget {
+  const StyledNetworkDropdown({
+    super.key,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String value;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final codes = context.watch<AppState>().networks.map((e) => e.code).toList();
+    final items = codes.isEmpty ? [value] : codes;
+    final selected = items.contains(value) ? value : items.first;
+
+    return Container(
+      height: 58,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF111111),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: gold.withValues(alpha: .38)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: selected,
+          dropdownColor: panel,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: gold2),
+          isExpanded: true,
+          items: items
+              .map(
+                (e) => DropdownMenuItem(
+                  value: e,
+                  child: Row(
+                    children: [
+                      const TronBadge(),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          e == 'TRC20' ? 'TRC20 (Tron)' : e,
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+              .toList(),
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+}
+
+class StyledSelectField extends StatelessWidget {
+  const StyledSelectField({
+    super.key,
+    required this.value,
+    required this.icon,
+    required this.trailing,
+    required this.onTap,
+  });
+
+  final String value;
+  final IconData icon;
+  final Widget trailing;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(14),
+    child: Container(
+      height: 58,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF111111),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: gold.withValues(alpha: .38)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: gold2),
+          const Spacer(),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+          const SizedBox(width: 10),
+          trailing,
+        ],
+      ),
+    ),
+  );
+}
+
+class AmountChip extends StatelessWidget {
+  const AmountChip({super.key, required this.text, required this.onTap});
+  final String text;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(10),
+    child: Container(
+      height: 48,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: const Color(0xFF111111),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: gold.withValues(alpha: .28)),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(color: gold2, fontWeight: FontWeight.bold),
+      ),
+    ),
+  );
+}
+
+class MiniGoldAction extends StatelessWidget {
+  const MiniGoldAction({
+    super.key,
+    required this.text,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final String text;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(10),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Text(text, style: const TextStyle(color: gold2, fontWeight: FontWeight.bold)),
+          const SizedBox(width: 8),
+          Icon(icon, color: gold2, size: 18),
+        ],
+      ),
+    ),
+  );
+}
+
+class ImportantNotes extends StatelessWidget {
+  const ImportantNotes({super.key, required this.items});
+  final List<String> items;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      const Text(
+        'ملاحظات مهمة',
+        textAlign: TextAlign.right,
+        style: TextStyle(color: gold2, fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 8),
+      ...items.map(
+        (e) => Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('•', style: TextStyle(color: gold2)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  e,
+                  textAlign: TextAlign.right,
+                  style: const TextStyle(color: muted, height: 1.45),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+class TetherBadge extends StatelessWidget {
+  const TetherBadge({super.key});
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 34,
+    height: 34,
+    decoration: const BoxDecoration(
+      shape: BoxShape.circle,
+      gradient: LinearGradient(colors: [Color(0xFF1F8B66), Color(0xFF6DE0B1)]),
+    ),
+    child: const Center(
+      child: Text(
+        '₮',
+        style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+      ),
+    ),
+  );
+}
+
+class TronBadge extends StatelessWidget {
+  const TronBadge({super.key});
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 34,
+    height: 34,
+    decoration: const BoxDecoration(
+      shape: BoxShape.circle,
+      gradient: LinearGradient(colors: [Color(0xFFB5112B), Color(0xFFFF5A6B)]),
+    ),
+    child: const Icon(Icons.change_history_rounded, color: Colors.white, size: 21),
+  );
+}
+
+String _shortAddress(String value) {
+  if (value.length <= 18) return value;
+  return '${value.substring(0, 6)}...${value.substring(value.length - 10)}';
 }
 
 class TransactionsScreen extends StatelessWidget {
