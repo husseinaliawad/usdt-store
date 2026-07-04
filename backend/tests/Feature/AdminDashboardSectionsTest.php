@@ -22,7 +22,11 @@ class AdminDashboardSectionsTest extends TestCase
             ->get(route('control.dashboard'))
             ->assertOk()
             ->assertSee('.shell', false)
-            ->assertSee('/css/admin.css', false);
+            ->assertSee('/css/admin.css', false)
+            ->assertSee('/control/transfers', false)
+            ->assertSee('/control/users', false)
+            ->assertDontSee('/control/0', false)
+            ->assertDontSee('/control/1', false);
 
         foreach ([
             'transfers',

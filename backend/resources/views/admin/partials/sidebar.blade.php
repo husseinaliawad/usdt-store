@@ -1,5 +1,7 @@
 @php
-    $groups = collect($sections)->groupBy('group');
+    $groups = collect($sections)
+        ->map(fn ($item, $key) => $item + ['key' => $key])
+        ->groupBy('group');
 @endphp
 
 <aside class="sidebar">
@@ -15,8 +17,8 @@
         @foreach ($groups as $group => $items)
             <div class="nav-group">
                 <div class="nav-title">{{ $group }}</div>
-                @foreach ($items as $key => $item)
-                    <a class="{{ $page === $key ? 'active' : '' }}" href="{{ $sectionUrl($key) }}">
+                @foreach ($items as $item)
+                    <a class="{{ $page === $item['key'] ? 'active' : '' }}" href="{{ $sectionUrl($item['key']) }}">
                         <span class="nav-icon">{{ $item['icon'] }}</span>
                         {{ $item['label'] }}
                     </a>
