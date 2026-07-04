@@ -12,4 +12,9 @@ class AppNotification extends Model
     {
         return ['read_at' => 'datetime'];
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
